@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="style/style.css">
+
+    <style type="text/css" media="print">
+        .noprint {
+            display: none
+        }
+        
+        .print {
+            display: block !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header class="el-header noprint">
+            <div class="icon-btns">
+                <i class="icon-list" @click="changeLeftMenu"></i>
+                <i class="icon-skip_previous" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('first')"></i>
+                <i class="icon-play_arrow prev-icon" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('prev')"></i>
+                <i class="icon-play_arrow" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('next')"></i>
+                <i class="icon-skip_next" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('last')"></i>
+                <select v-model="currentPage">
+                    <option v-for="page in pageNum" v-bind:value="page">page {{ page }}</option>
+                </select>
+                <i class="icon-zoom_in" v-bind:class="{'disabled': zoomNum == 2}" @click="modifyZoom('in')"></i>
+                <select v-model="zoomNum">
+                    <option value="0.5">50%</option>
+                    <option value="0.6">60%</option>
+                    <option value="0.7">70%</option>
+                    <option value="0.8">80%</option>
+                    <option value="0.9">90%</option>
+                    <option value="1.0" selected>100%</option>
+                    <option value="1.1">110%</option>
+                    <option value="1.2">120%</option>
+                    <option value="1.3">130%</option>
+                    <option value="1.4">140%</option>
+                    <option value="1.5">150%</option>
+                    <option value="1.6">160%</option>
+                    <option value="1.7">170%</option>
+                    <option value="1.8">180%</option>
+                    <option value="1.9">190%</option>
+                    <option value="2.0">200%</option>
+                </select>
+                <i class="icon-zoom_out" v-bind:class="{'disabled': zoomNum == 0.5}" @click="modifyZoom('out')"></i>
+                <i class="icon-format_align_left" @click="textAlign = 'left'"></i>
+                <i class="icon-format_align_center" @click="textAlign = 'center'"></i>
+                <i class="icon-format_align_right" @click="textAlign = 'right'"></i>
+                <i class="icon-print" @click="window.print()"></i>
+            </div>
+        </header>
+
+        <aside class="noprint" width="240px" v-show="ifMenuShow">
+            <nav class="tabNav">
+                <ul>
+                    <li v-bind:class="{ 'curr': currentNav == 0 }" @click="currentNav = 0">Page</li>
+                    <li v-bind:class="{ 'curr': currentNav == 1 }" @click="currentNav = 1">Bookmark</li>
+                </ul>
+
+                <div class="clear"></div>
+            </nav>
+
+            <div class="tab-conent scrollbar" v-bind:style="{ height: asideHeight + 'px' }">
+
+            <section v-show="currentNav == 0">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-file-text2"></i> page {{ page }}</li>
+                </ul>
+            </section>
+
+            <section v-show="currentNav == 1">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-turned_in_not"></i> Bookmark {{ page }}</li>
+                </ul>
+            </section>
+        </div>
+
+        </aside>
+        <div class="main scrollbar noprint"  v-bind:style="{ height: mainHeight + 'px' }" v-bind:class="{ 'mainLeftM': ifMenuShow, 'aleft': textAlign === 'left','acenter': textAlign === 'center','aright': textAlign === 'right'}">
+            <div class="conent" v-html="pageContent" v-bind:style="zoomStyle"></div>
+
+            <div class="clear"></div>
+        </div>
+
+        <!--专门只为打印的内容-->
+        <div class="conent print" style="display:none" v-html="pageContent"></div>
+    </div>
+</body>
+<!-- 先引入 Vue -->
+<script src="js/vue.min.js"></script>
+<script>
+
+var app = new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                // visible: false,
+                isCollapse: false,
+                currentNav: 0,
+                activeName2: 'first',
+                pageNum: 1, 
+                currentPage: 1,
+                pageContent: '',
+                asideHeight: 300,
+                mainHeight: 300,
+                ifMenuShow: true,
+                zoomNum: '1.0',
+                textAlign: 'left',
+                zoomStyle: {},
+                pageDatas: ['<div style="position:absolute;top:-0.000081px;left:0.000000px"><nobr><img height="1123.000000" width="794.000000" src ="bgimg/bg00001.jpg"/></nobr></div><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:50.884766px;left:47.974197px"><nobr>gH </nobr></span></span></p><p><span style="font-family:Calibri;font-size:18.000000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:291.014313px;left:55.969898px"><nobr>TENTANG SAYA </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:350.179840px;left:55.969898px"><nobr>HALLO SAYA GINA! </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:383.943115px;left:55.969898px"><nobr>Saya adalah orang yang suka </nobr></span><span style="position:absolute;top:404.425140px;left:55.969898px"><nobr>akan sesuatu hal yang </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:425.067047px;left:55.969898px"><nobr>menarik , saya mempunyai </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:445.709045px;left:55.969898px"><nobr>kreatifitas yang cukup tinggi, </nobr></span><span style="position:absolute;top:466.190979px;left:55.969898px"><nobr>dan juga memiliki rasa ingin </nobr></span><span style="position:absolute;top:486.992950px;left:55.969898px"><nobr>tahu yang cukup besar. </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:520.756104px;left:55.969898px"><nobr>Saya tipikal orang yang sedikit </nobr></span><span style="position:absolute;top:541.398132px;left:55.969898px"><nobr>berbicara, dan bisa dibilang </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:561.880066px;left:55.969898px"><nobr>pendiam. Saya termasuk </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:582.548645px;left:55.969898px"><nobr>orang yang disiplin dan </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:603.190674px;left:55.969898px"><nobr>mempunyai hobi </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:623.832581px;left:55.969898px"><nobr>menggambar </nobr></span></span></p><p><span style="font-family:Calibri;font-size:15.960000px;font-weight:bold;text-decoration:underline;color:#000000;"><span style="position:absolute;top:752.684875px;left:82.387695px"><nobr>KONTAK SAYA </nobr></span></span></p><p><span style="font-family:Calibri;font-size:14.040000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:290.014160px;left:394.734436px"><nobr>DATA PRIBADI </nobr></span></span></p><p><span style="font-family:Lucida Fax;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:334.066315px;left:394.734436px"><nobr>Nama : Gina Gustiani </nobr></span></span></p><p><span style="font-family:Lucida Fax;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:352.948151px;left:394.734436px"><nobr>TTL : Bandung 21 Agustus 2004 </nobr></span><span style="position:absolute;top:371.829926px;left:394.734436px"><nobr>Alamat : Kp.Panundaan RT03/RW05 Desa </nobr></span></span></p><p><span style="font-family:Lucida Fax;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:390.711823px;left:468.161560px"><nobr>Panundaan, Kecamatan Ciwidey, </nobr></span></span></p><p><span style="font-family:Lucida Fax;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:409.433502px;left:468.161560px"><nobr>Kabupaten Bandung. </nobr></span></span></p><p><span style="font-family:Lucida Fax;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:428.315338px;left:394.734436px"><nobr>Agama : Islam </nobr></span></span></p><p><span style="font-family:Calibri;font-size:14.040000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:523.836487px;left:394.734436px"><nobr>PENDIDIKAN </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:782.247620px;left:395.853760px"><nobr>SEKOLAH DASAR </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:808.970215px;left:542.521606px"><nobr>SDN SIMPANG </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:826.931885px;left:550.357300px"><nobr>2011 - 2017 </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.000000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:679.637939px;left:395.853760px"><nobr>SEKOLAH MENENGAH PERTAMA </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:711.040833px;left:534.685791px"><nobr>SMPN 1 CIWIDEY </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:728.962585px;left:550.357300px"><nobr>2017 - 2020 </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:567.920654px;left:395.853760px"><nobr>SEKOLAH MENENGAH ATAS </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:594.029785px;left:515.975830px"><nobr>SMK BUDI BAKTI CIWIDEY </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:610.191345px;left:502.543091px"><nobr>REKAYASA PERANGKAT LUNAK </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:626.352783px;left:553.555603px"><nobr>2020 - 2023 </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:907.259521px;left:280.875610px"><nobr>PENGALAMAN &amp; PRESTASI </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:935.188599px;left:314.777374px"><nobr> </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:956.470581px;left:314.777374px"><nobr> </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:938.942505px;left:338.764465px"><nobr>Juara 2 lomba Matematika (SD kelas 5) </nobr></span><span style="position:absolute;top:960.224609px;left:338.764465px"><nobr>Lomba Cerita Bergambar (Cergam) </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:977.907349px;left:314.777374px"><nobr> </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:981.661255px;left:338.764465px"><nobr>Lomba PMR LDR CHEXO </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:999.189331px;left:314.777374px"><nobr> </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1002.943237px;left:338.764465px"><nobr>Mengikuti ekstrakulikuler Pramuka (SD) </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1020.631287px;left:314.777374px"><nobr> </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1024.385254px;left:338.764465px"><nobr>Mengikuti ekstrakulikuler PMR (SMP) </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1041.913452px;left:314.777374px"><nobr> </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:1045.667358px;left:338.764465px"><nobr>Mengikuti ekstrakulikuler Katare (SMK) </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:813.130615px;left:102.856674px"><nobr>@gnagx_ </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:864.215515px;left:102.856674px"><nobr>Gina Gustiani </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:919.260620px;left:102.856674px"><nobr>+62 8966 7769 089 </nobr></span></span></p><p><span style="font-family:Arial;font-size:9.000000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:976.406006px;left:102.856674px"><nobr>gegexx218@gmail.com </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.040000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:913.180115px;left:635.791443px"><nobr>KEAHLIAN </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:946.263245px;left:641.708252px"><nobr>MICROSOFT OFFICE </nobr></span></span></p><p><span style="font-family:Cambria;font-size:9.000000px;font-weight:bold;color:#C4BC96;"><span style="position:absolute;top:964.344971px;left:654.661255px"><nobr>MENENGAH </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:992.182312px;left:646.665588px"><nobr>HTML </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.000000px;font-weight:bold;color:#C4BC96;"><span style="position:absolute;top:1012.664307px;left:654.661255px"><nobr>PEMULA </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.960000px;font-weight:bold;color:#000000;"><span style="position:absolute;top:1042.267090px;left:645.706116px"><nobr>MENDESAIN </nobr></span></span></p><p><span style="font-family:Calibri;font-size:9.000000px;font-weight:bold;color:#C4BC96;"><span style="position:absolute;top:1060.700684px;left:654.661255px"><nobr>PEMULA </nobr></span></span></p><div style="position:absolute;top:27.002523px;left:270.854340px"><nobr><table height="90.008629px" width="385.792542px" bordercolor="black" border="0"><tr><td height = "48.754639" width="289.344391" rowspan="2" colspan="3"><span style="font-family:Lucida Handwriting;font-size:26.040001px;font-style:italic;font-weight:bold;color:#000000;"><p><span style="position:absolute;top:6.345866px;left:35.447613px"><nobr>GINA <span style="font-size:27.959999px;">GUSTIANI </span></nobr></span></p><p><span style="font-size:18.024000px;color:#948A54;"><span style="position:absolute;top:59.756916px;left:115.084801px"><nobr>WEB DESAIN </nobr></span></span></p></span></td></tr><tr></tr><tr><td height = "18.751831" width="34.481461" rowspan="1" colspan="1"></td><td height = "18.751831" width="182.152023" rowspan="1" colspan="1"></td><td height = "18.751831" width="72.710907" rowspan="1" colspan="1"></td></tr></table></nobr></div>']
+            }
+        },
+        mounted: function() {
+            this.$nextTick(function() {
+                this.pageNum = this.pageDatas.length;
+                this.pageContent = this.pageDatas[0];
+
+                this.setLeftMenuHeight();
+            })
+        },
+        watch: {
+            'currentPage': function(newVal, oldValue) {
+                // console.log('newVal ' + newVal, 'oldValue ' + oldValue);
+                if (newVal) {
+                    this.pageContent = this.pageDatas[this.currentPage - 1];
+                }
+            },
+            'zoomNum': function(newVal, oldValue) {
+                if (newVal) {
+                    this.zoomStyle = {
+                        'transform': 'scale(' + newVal + ')',
+                        '-webkit-transform': 'scale(' + newVal + ')',
+                        '-ms-transform': 'scale(' + newVal + ')',
+                        '-moz-transform': 'scale(' + newVal + ')',
+                        '-o-transform': 'scale(' + newVal + ')'
+                    }
+                }
+            }
+        },
+        methods: {
+            
+            changeCurrentPage: function(methods) {
+                switch (methods) {
+                    case 'first':
+                        this.currentPage = 1;
+                        break;
+                    case 'prev':
+                        if (this.currentPage > 1) {
+                            this.currentPage -= 1;
+                        }
+                        break;
+                    case 'next':
+                        if (this.currentPage < this.pageNum) {
+                            this.currentPage += 1;
+                        }
+                        break;
+                    case 'last':
+                        this.currentPage = this.pageNum;
+                        break;
+                }
+            },
+
+            gotoPage: function(page) {
+                console.log(page);
+                this.currentPage = page;
+            },
+            modifyZoom: function(type) {
+                switch (type) {
+                    case 'in':
+                        if (this.zoomNum < 2) {
+                            // this.zoomNum = (this.zoomNum + 0.1).toFixed(1);
+                            this.zoomNum = (parseFloat(this.zoomNum) + 0.1).toFixed(1);
+                        }
+                        break;
+                    case 'out':
+                        if (this.zoomNum > 0.5) {
+                            this.zoomNum = (parseFloat(this.zoomNum) - 0.1).toFixed(1);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                console.log(this.zoomNum);
+            },
+            setLeftMenuHeight: function() {
+                // this.asideHeight = document.body.scrollHeight - 60;
+                this.mainHeight = document.documentElement.clientHeight - 60 - 20;
+                // 60为头部导航高度， 46为menu高度， 40为上下padding
+                this.asideHeight = this.mainHeight - 20 - 46;
+            },
+            changePage: function(page) {
+                this.currentPage = page;
+                // this.pageContent = this.pageDatas[page - 1];
+            },
+            changeLeftMenu: function() {
+                this.ifMenuShow = !this.ifMenuShow;
+            }
+        }
+    });
+
+function gotoPage(page) {
+    console.log(page);
+    app.gotoPage(page);
+}
+
+</script>
+
+</html>
